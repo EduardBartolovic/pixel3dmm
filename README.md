@@ -1,4 +1,4 @@
-#  Pixel3DMM: Versatile Screen-Space Priors for Single-Image 3D Face Reconstruction
+#  Forked - Pixel3DMM: Versatile Screen-Space Priors for Single-Image 3D Face Reconstruction
 [**Paper**](https://arxiv.org/abs/2505.00615) | [**Video**](https://www.youtube.com/watch?v=BwxwEXJwUDc) | [**Project Page**](https://simongiebenhain.github.io/pixel3dmm/) <br>
 
 <div style="text-align: center">
@@ -18,16 +18,9 @@ This repository contains the official implementation of the paper:
 
 ## 1. Installation 
 
-First we need to set up a conda enviroment. Below, there are two installation options presented:
+First we need to set up a conda enviroment.
 
-### Option A: Using `environment.yml`
-> Note that this can take quite a while.
-```
-conda env create --file environment.yml
-conda activate p3dmm 
-```
-
-### Option B: Manual Installation
+### Manual Installation
 
 ```
 conda create -n p3dmm python=3.9
@@ -55,7 +48,7 @@ pip install -r requirements.txt
 
 Finally, you will need to run
 ```
-pip instal -e .
+pip install -e .
 ```
 to install `pixel3dmm` as a package.
 

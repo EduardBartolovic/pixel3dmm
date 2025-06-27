@@ -1,11 +1,10 @@
 import shutil
 
 import mediapy
-from PIL import Image, ImageDraw
+from PIL import Image
 import os.path
 from enum import Enum
 from pathlib import Path
-import wandb
 import time
 
 import cv2
@@ -15,8 +14,8 @@ import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import trimesh
 from pytorch3d.io import load_obj
-from pytorch3d.ops import knn_points, knn_gather
-from torch.utils.tensorboard import SummaryWriter
+from pytorch3d.ops import knn_points
+#from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from torchvision.transforms.functional import gaussian_blur
 from time import time
@@ -24,8 +23,8 @@ from time import time
 
 import pyvista as pv
 import dreifus
-from dreifus.matrix import Pose, Intrinsics, CameraCoordinateConvention, PoseType
-from dreifus.pyvista import add_camera_frustum, render_from_camera
+from dreifus.matrix import Pose #, Intrinsics, CameraCoordinateConvention, PoseType
+#from dreifus.pyvista import add_camera_frustum, render_from_camera
 
 from pixel3dmm import env_paths
 from pixel3dmm.tracking import util
@@ -128,22 +127,16 @@ if COMPILE:
 
 
 class Tracker(object):
-    def __init__(self, config,
-                 device='cuda:0',
-                 ):
+    def __init__(self, config, device='cuda:0'):
         self.config = config
         self.device = device
-        self.actor_name = self.config.video_name
+        self.actor_name = str(self.config.video_name)
         DATA_FOLDER = f'{env_paths.PREPROCESSED_DATA}/{self.actor_name}'
         self.MAX_STEPS = min(len([f for f in os.listdir(f'{DATA_FOLDER}/cropped/') if f.endswith('.jpg') or f.endswith('.png')]) - self.config.start_frame, 1000)
         self.FRAME_SKIP = 1
         self.BATCH_SIZE = self.config.batch_size
 
-        print(f'''
-                <<<<<<<< INITIALIZING TRACKER INSTANCE FOR {self.actor_name} >>>>>>>>
-                ''')
-
-
+        print(f''' <<<<<<<< INITIALIZING TRACKER INSTANCE FOR {self.actor_name} >>>>>>>> ''')
 
         self.mirror_order = torch.from_numpy(np.load(f'{env_paths.MIRROR_INDEX}')).long().cuda()
 
@@ -153,8 +146,6 @@ class Tracker(object):
 
         if COMPILE:
             self.uv_loss_fn.compute_loss = torch.compile(self.uv_loss_fn.compute_loss)
-
-
 
         self.actor_name = self.actor_name + f'_nV{config.num_views}'
 
@@ -170,7 +161,6 @@ class Tracker(object):
 
         if self.config.flame2023:
             self.actor_name = self.actor_name + '_FLAME23'
-
 
 
         if self.config.uv_map_super > 0:
@@ -199,7 +189,7 @@ class Tracker(object):
         self.checkpoint_folder = os.path.join(self.save_folder, self.actor_name, "checkpoint")
         self.mesh_folder = os.path.join(self.save_folder, self.actor_name, "mesh")
         self.create_output_folders()
-        self.writer = SummaryWriter(log_dir=self.save_folder + self.actor_name + '/logs')
+        #self.writer = SummaryWriter(log_dir=self.save_folder + self.actor_name + '/logs')
 
         self.cam_pose_nvd = {}
         self.R_base = {}
@@ -208,23 +198,19 @@ class Tracker(object):
         flame_mesh_mask = np.load(f'{env_paths.FLAME_ASSETS}/FLAME2020/FLAME_masks/FLAME_masks.pkl', allow_pickle=True, encoding='latin1')
         self.vertex_face_mask = torch.from_numpy(flame_mesh_mask['face']).cuda().long()
 
-
         self.setup_renderer()
 
-
-        self.intermediate_exprs = []
-        self.intermediate_Rs = []
-        self.intermediate_ts = []
-        self.intermediate_eyes = []
-        self.intermediate_eyelids = []
-        self.intermediate_jaws = []
-        self.intermediate_necks = []
-        self.intermediate_fls = []
-        self.intermediate_pps = []
+        self.intermediate_exprs = []    # expression coefficients 
+        self.intermediate_Rs = []       # Rotation matrices (or axis-angle) for the head?
+        self.intermediate_ts = []       # Translation vector of the head?
+        self.intermediate_eyes = []     # gaze direction?
+        self.intermediate_eyelids = []  # Eyelid expression or state (open/closed).?
+        self.intermediate_jaws = []     # Jaw pose (open/close, side movement)?
+        self.intermediate_necks = []    # Neck rotation?
+        self.intermediate_fls = []      # Focal length of the camera for that frame?
+        self.intermediate_pps = []      # Principal point of the camera?
 
         self.cached_data = {}
-
-
 
 
     def get_image_size(self):
@@ -305,23 +291,15 @@ class Tracker(object):
             'global_step': self.global_step
         }
 
-        cam_params = {
-            f'R_base_{serial}': self.R_base[serial].clone().detach().cpu().numpy() for serial in self.R_base.keys()
-        }
-        cam_pos = {
-                    f't_base_{serial}': self.t_base[serial].clone().detach().cpu().numpy() for serial in self.R_base.keys()
-                }
+        cam_params = {f'R_base_{serial}': self.R_base[serial].clone().detach().cpu().numpy() for serial in self.R_base.keys()}
+        cam_pos = {f't_base_{serial}': self.t_base[serial].clone().detach().cpu().numpy() for serial in self.R_base.keys()}
         intr = {
-                    'fl': focal_length.clone().detach().cpu().numpy(),
-                    'pp': principal_point.clone().detach().cpu().numpy(),
-                    }
+                'fl': focal_length.clone().detach().cpu().numpy(),
+                'pp': principal_point.clone().detach().cpu().numpy(),
+                }
         cam_params.update(cam_pos)
         cam_params.update(intr)
-        frame.update(
-            {
-                f'camera': cam_params
-            }
-        )
+        frame.update({f'camera': cam_params})
         bs = exp.shape[0]
         vertices, lmks, joint_transforms, vertices_can, vertices_noneck = self.flame(cameras=torch.inverse(self.R_base[0])[:1, ...].repeat(bs, 1, 1),
                    shape_params=self.shape[:1, ...].repeat(bs, 1),
@@ -332,11 +310,7 @@ class Tracker(object):
                    rot_params_lmk_shift=R,
                    eyelid_params=eyelids,
         )
-        frame.update(
-            {
-                f'joint_transforms': joint_transforms.detach().cpu().numpy(),
-            }
-        )
+        frame.update({f'joint_transforms': joint_transforms.detach().cpu().numpy()})
 
         f = self.diff_renderer.faces[0].cpu().numpy()
         for b_i in range(bs):
@@ -345,6 +319,7 @@ class Tracker(object):
 
             if self.config.save_meshes:
                 trimesh.Trimesh(faces=f, vertices=v, process=False).export(f'{self.mesh_folder}/{frame_id:05d}.ply')
+
             torch.save(frame, f'{self.checkpoint_folder}/{frame_id:05d}.frame')
 
             selction_indx = np.array([36, 39, 42, 45, 33, 48, 54])
@@ -352,8 +327,6 @@ class Tracker(object):
 
             if self.config.save_landmarks:
                 np.save(f'{self.mesh_folder}/landmarks_{frame_id}_{b_i}.npy', _lmks[selction_indx])
-
-
 
         if frame_id == self.config.start_frame and self.config.save_meshes:
             faces = self.diff_renderer.faces[0].cpu().numpy()
@@ -363,8 +336,6 @@ class Tracker(object):
             np.save(f'{self.mesh_folder}/ibug68_{frame_id}.ply', lmks)
             selction_indx = np.array([36, 39, 42, 45, 33, 48, 54])
             np.save(f'{self.mesh_folder}/now_{frame_id}.ply', lmks[selction_indx])
-
-
 
 
     def get_heatmap(self, values):
@@ -412,13 +383,11 @@ class Tracker(object):
         opencv_w2c_pose = opencv_w2c_pose.change_pose_type(dreifus.matrix.PoseType.WORLD_2_CAM)
         self.debug_pose_init = opencv_w2c_pose.change_pose_type(dreifus.matrix.PoseType.WORLD_2_CAM).copy()
 
-
         self.shape = mica_shape.detach().clone()
         self.mica_shape = mica_shape.detach().clone()
         if self.config.ignore_mica:
             self.shape = torch.zeros_like(self.shape)
             self.mica_shape = torch.zeros_like(self.mica_shape)
-
 
         cam_pose = opencv_w2c_pose
         cam_pose = cam_pose.change_pose_type(dreifus.matrix.PoseType.CAM_2_WORLD)
@@ -453,9 +422,6 @@ class Tracker(object):
         for serial in self.cam_pose_nvd.keys():
             self.r_mvps[serial] = ( proj_512 @ self.cam_pose_nvd[serial] )[None, ...]
 
-
-
-
         n_timesteps = 1
         expression_params = np.zeros([n_timesteps, 100])
         jaw_params = np.zeros([n_timesteps, 3])
@@ -476,9 +442,6 @@ class Tracker(object):
         self.exp = nn.Parameter(torch.from_numpy(self.expression_params[[0] + self.config.keyframes,..., :]).float().to(self.device))
         self.jaw = nn.Parameter(matrix_to_rotation_6d(euler_angles_to_matrix(torch.from_numpy(self.jaw_params[[0]+ self.config.keyframes,..., :]).cuda(), 'XYZ')))
         self.neck = nn.Parameter(matrix_to_rotation_6d(euler_angles_to_matrix(torch.from_numpy(self.neck_params[[0]+ self.config.keyframes,..., :]).cuda(), 'XYZ')))
-
-
-
 
         self.eyes = nn.Parameter(torch.cat([matrix_to_rotation_6d(I), matrix_to_rotation_6d(I)], dim=1).repeat(1+len(self.config.keyframes), 1) )
         self.eyelids = nn.Parameter(torch.zeros(1+len(self.config.keyframes), 2).float().to(self.device))
@@ -576,8 +539,7 @@ class Tracker(object):
         return all_loss
 
 
-    def optimize_camera(self, batch, steps=2000, is_first_frame : bool = False
-                        ):
+    def optimize_camera(self, batch, steps=2000, is_first_frame : bool = False):
         batch = self.to_cuda(batch)
 
         images, landmarks, lmk_mask = self.parse_landmarks(batch)
@@ -1156,7 +1118,6 @@ class Tracker(object):
                 #self.checkpoint(batch, visualizations=[[View.GROUND_TRUTH, View.LANDMARKS, View.SHAPE_OVERLAY]],
                 #                frame_dst='/debug_joint', save=False, dump_directly=True, timestep=p, selected_frames=selected_frames, is_final=True)
             self.frame += 1
-
             iterator.set_description(f'Timestep {save_timestep}; Loss {all_loss.item():.4f}')
 
             #if n_steps_stagnant > 35 and not is_joint:
@@ -1165,13 +1126,7 @@ class Tracker(object):
             if not is_joint and not is_first_step:
                 if p > stagnant_window_size and np.mean(past_k_steps) < self.config.early_stopping_delta: #3.0: #3.0:
                     print('Early Stopping, go to next frame!')
-                    #losses['early_stopping'] = past_k_steps
-                    #wandb.log(losses)
-                    #wandb.log({'early_stopping': wandb.Histogram(past_k_steps)})
-
                     break
-            #print('rate of change', np.mean(past_k_steps))
-
 
     def render_and_save(self, batch,
                         visualizations=[[View.GROUND_TRUTH, View.LANDMARKS, View.HEATMAP], [View.COLOR_OVERLAY, View.SHAPE_OVERLAY, View.SHAPE]],
@@ -1203,8 +1158,6 @@ class Tracker(object):
         else:
             normal_map_can = None
 
-
-        savefolder = self.save_folder + self.actor_name + frame_dst
         num_keyframes = 1#1 + len(self.config.keyframes)
 
         with torch.no_grad():
@@ -1266,10 +1219,8 @@ class Tracker(object):
             vertices = torch.einsum('bny,bxy->bnx', vertices_can, rotation_6d_to_matrix(R.repeat_interleave(num_views, dim=0))) + t.repeat_interleave(num_views, dim=0).unsqueeze(1)
             vertices_noneck = torch.einsum('bny,bxy->bnx', vertices_noneck, rotation_6d_to_matrix(R.repeat_interleave(num_views, dim=0))) + t.repeat_interleave(num_views, dim=0).unsqueeze(1)
 
-
             lmk68 =  project_points_screen_space(lmk68, focal_length, principal_point, self.R_base, self.t_base, size=self.config.size)
             proj_vertices = project_points_screen_space(vertices, focal_length, principal_point, self.R_base, self.t_base, size=self.config.size)
-
 
             _timestep = 0
             ops = self.diff_renderer(vertices, None, None,
@@ -1287,7 +1238,6 @@ class Tracker(object):
             is_visible_verts_idx = grabbed_depth < proj_vertices[0, :, 2] + 1e-2
             if not self.config.occ_filter:
                 is_visible_verts_idx = torch.ones_like(is_visible_verts_idx)
-
 
             all_final_views = []
             for b_i in range(bs):
@@ -1323,9 +1273,7 @@ class Tracker(object):
                         for _i in range(eyebrow_level.shape[0]):
                             nvd_mask_clone[_i, :, :eyebrow_level[_i], :] = 0
 
-
                     final_views.append(row)
-
 
                 # VIDEO
                 final_views = util.merge_views(final_views)
@@ -1430,9 +1378,6 @@ class Tracker(object):
                 l_map = (normal_map - pred_normals_flame_space)
                 valid = ((l_map.abs().sum(dim=1)/3) < self.config.delta_n).unsqueeze(1)
 
-
-
-
                 predicted_normal = ((pred_normals_flame_space.permute(0, 2, 3, 1)[...,
                                      :3] + 1) / 2 * 255).detach().cpu().numpy().astype(np.uint8)
                 if self.config.draw_uv_corresp:
@@ -1445,8 +1390,6 @@ class Tracker(object):
                     catted = np.concatenate([pseudo_normal, predicted_normal, normal_loss_map], axis=2)
                 else:
                     catted = predicted_normal
-                # Image.fromarray(catted).show()
-                # print('hi')
 
                 for b_i in range(catted.shape[0]):
                     if len(catted_uv_rows) > 0:
@@ -1688,9 +1631,7 @@ class Tracker(object):
             self.opt_pre = torch.compile(self.opt_pre)
             self.opt_post = torch.compile(self.opt_post)
 
-        print('''
-                <<<<<<<< STARTING GLOBAL TRACKING PHASE >>>>>>>>
-                ''')
+        print(''' <<<<<<<< STARTING GLOBAL TRACKING PHASE >>>>>>>> ''')
 
         if N_FRAMES > 1:
 
@@ -1721,7 +1662,6 @@ class Tracker(object):
 
         mediapy.write_video(f'{self.save_folder}/{self.actor_name}/result.mp4', images=video_frames, crf=15, fps=25)
 
-
         # Optionally delete all preoprocessing artifacts, once tracking is done (only keep cropped images)
         if self.config.delete_preprocessing:
             shutil.rmtree(f'{env_paths.PREPROCESSED_DATA}/{self.config.video_name}/mica')
@@ -1735,10 +1675,7 @@ class Tracker(object):
             shutil.rmtree(f'{env_paths.PREPROCESSED_DATA}/{self.config.video_name}/seg_non_crop_annotations')
             shutil.rmtree(f'{env_paths.PREPROCESSED_DATA}/{self.config.video_name}/seg_og')
 
-
-        print(f'''
-                <<<<<<<< DONE WITH TRACKING {self.actor_name} >>>>>>>>
-                ''')
+        print(f''' <<<<<<<< DONE WITH TRACKING {self.actor_name} >>>>>>>> ''')
 
 
 

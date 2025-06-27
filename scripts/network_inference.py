@@ -6,7 +6,6 @@ import torch
 import numpy as np
 from PIL import Image
 from omegaconf import OmegaConf
-from time import time
 
 from pixel3dmm.utils.uv import uv_pred_to_mesh
 from pixel3dmm.lightning.p3dmm_system import system as p3dmm_system
@@ -212,9 +211,7 @@ def main(cfg):
                 traceback.print_exc()
                 pass
 
-    print(f'''
-                <<<<<<<< FINISHED PIXEL3DMM INFERENCE for {cfg.video_name} in {prediction_types} MODE >>>>>>>>
-                ''')
+    print(f'''<<<<<<<< FINISHED PIXEL3DMM INFERENCE for {cfg.video_name} in {prediction_types} MODE >>>>>>>>''')
 
 
 

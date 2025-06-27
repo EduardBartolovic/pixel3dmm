@@ -1,6 +1,3 @@
-import os
-import wandb
-
 from omegaconf import OmegaConf
 from pixel3dmm.tracking.tracker import Tracker
 from pixel3dmm import env_paths
@@ -14,14 +11,4 @@ if __name__ == '__main__':
 
     cli_conf = OmegaConf.from_cli()
     cfg = OmegaConf.merge(base_conf, cli_conf)
-
-    #os.makedirs('/home/giebenhain/debug_wandb_p3dmm/', exist_ok=True)
-    #wandb.init(
-    #   dir='/home/giebenhain/debug_wandb_p3dmm/',
-    #   #config=config,
-    #   project='face-tracking-p3dmm',
-    #   #tags=wandb_tags,
-    #   #name=cfg.config_name,
-#
-    #)
     main(cfg)

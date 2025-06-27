@@ -63,9 +63,7 @@ def unpack_images(base_path, video_or_images_path):
         files = os.listdir(f'{video_or_images_path}')
         files.sort()
         if len(os.listdir(base_path)) == len(files):
-            print(f'''
-                        <<<<<<<< ALREADY COMPLETED IMAGE CROPPING for {video_or_images_path}, SKIPPING! >>>>>>>>
-                        ''')
+            print(f'''<<<<<<<< ALREADY COMPLETED IMAGE CROPPING for {video_or_images_path}, SKIPPING! >>>>>>>>''')
             return
         for i, file in enumerate(files):
             I = Image.open(f'{video_or_images_path}/{file}')

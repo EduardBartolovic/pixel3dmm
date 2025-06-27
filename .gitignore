@@ -17,5 +17,7 @@ dist
 /src/pixel3dmm/preprocessing/PIPNet/
 /pretrained_weights/
 /assets/
+/tracking_results/
+/preprocessing_results/
 
 *.mp4

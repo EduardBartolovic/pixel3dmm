@@ -16,7 +16,7 @@ from pixel3dmm.env_paths import PREPROCESSED_DATA, TRACKING_OUTPUT
 
 def main(vid_name : str,
          HEAD_CENTRIC : bool = True,
-         DO_PROJECTION_TEST : bool = False,
+         DO_PROJECTION_TEST : bool = True,
          ):
     tracking_dir = f'{TRACKING_OUTPUT}/{vid_name}_nV1_noPho_uv2000.0_n1000.0'
 
