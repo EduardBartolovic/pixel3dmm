@@ -237,8 +237,7 @@ def demo_image(image_dir, pid, cam_dir, net, preprocess, cfg, input_size, net_st
                 dets_filtered.sort(key=lambda x: -1 * x[1])
                 detections = dets_filtered
 
-
-                print(detections)
+                #print("detections:", detections)
                 for i in range(min(1, len(detections))):
                     if detections[i][1] < 0.99:
                         continue

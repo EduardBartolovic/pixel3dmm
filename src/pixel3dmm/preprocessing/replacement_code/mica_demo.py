@@ -181,8 +181,6 @@ if __name__ == '__main__':
     args.o = f'{env_paths.PREPROCESSED_DATA}/{args.video_name}/mica/'
     if os.path.exists(f'{env_paths.PREPROCESSED_DATA}/{args.video_name}/mica/'):
         if len(os.listdir(f'{env_paths.PREPROCESSED_DATA}/{args.video_name}/mica/')) >= 10:
-            print(f'''
-                            <<<<<<<< ALREADY COMPLETE MICA PREDICTION FOR {args.video_name}, SKIPPING >>>>>>>>
-                            ''')
+            print(f'''<<<<<<<< ALREADY COMPLETE MICA PREDICTION FOR {args.video_name}, SKIPPING >>>>>>>>''')
             exit()
     main(cfg, args)

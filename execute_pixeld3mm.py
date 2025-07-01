@@ -83,6 +83,7 @@ def process_video(video_path):
 if __name__ == '__main__':
     #PATH_TO_VIDEO = "/home/duck/pixel3dmm/example_videos/test1.mp4"
     #process_video(PATH_TO_VIDEO)
+    mp.set_start_method('spawn', force=True)
     video_folder = "/home/gustav/vox/vox2test_preped_vid_cap250"
     for video in sorted(os.listdir(video_folder)):
         video_path = os.path.join(video_folder, video)

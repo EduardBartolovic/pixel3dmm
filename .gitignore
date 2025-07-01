@@ -21,3 +21,6 @@ dist
 /preprocessing_results/
 
 *.mp4
+*.npy
+*.jpg
+*.txt
