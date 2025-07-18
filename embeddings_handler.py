@@ -6,7 +6,7 @@ from sklearn.metrics.pairwise import euclidean_distances, cosine_distances
 from collections import defaultdict
 
 
-def plot_umap_embeddings(shape_file, label_file, output_file=None, highlight_indices=None):
+def plot_umap_embeddings(shape_file, label_file, output_file=None, highlight_indices=None, show_labels=False):
     shape_array = np.load(shape_file)
     identity_ids = np.load(label_file)
 
@@ -14,14 +14,20 @@ def plot_umap_embeddings(shape_file, label_file, output_file=None, highlight_ind
     labels = label_encoder.fit_transform(identity_ids)
     label_names = label_encoder.classes_
 
-    reducer = umap.UMAP(n_components=2, random_state=42)
+    reducer = umap.UMAP(n_components=2, random_state=42, n_jobs=1)
     embeddings_2d = reducer.fit_transform(shape_array)
 
     plt.figure(figsize=(20, 20))
     scatter = plt.scatter(
         embeddings_2d[:, 0], embeddings_2d[:, 1],
-        c=labels, cmap='tab20', s=30, alpha=0.8
+        c=labels, cmap='tab20', s=30, alpha=0.9
     )
+
+    # Add class labels to each point
+    if show_labels:
+        for i, txt in enumerate(identity_ids):
+            plt.text(embeddings_2d[i, 0], embeddings_2d[i, 1], str(txt),
+                     fontsize=6, ha='center', va='center', alpha=0.7)
 
     # Highlight misclassified points if provided
     if highlight_indices is not None:
