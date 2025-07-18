@@ -10,9 +10,9 @@ if env_file_path.exists():
 
 
 with env.prefixed("PIXEL3DMM_"):
-    CODE_BASE = "/home/gustav/pixel3dmm/"
-    PREPROCESSED_DATA = "/home/gustav/pixel3dmm/preprocessing_results"
-    TRACKING_OUTPUT = "/home/gustav/pixel3dmm/tracking_results"
+    CODE_BASE = "/home/duck/pixel3dmm/"
+    PREPROCESSED_DATA = "/home/duck/pixel3dmm/preprocessing_results"
+    TRACKING_OUTPUT = "/home/duck/pixel3dmm/tracking_results"
 
 
 #PATH_TO_VIDEO="/home/duck/pixel3dmm/example_videos/ex1.mp4"

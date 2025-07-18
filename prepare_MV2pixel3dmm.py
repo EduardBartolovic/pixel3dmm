@@ -4,8 +4,8 @@ import tempfile
 from collections import defaultdict
 from tqdm import tqdm
 
-ROOT_DIR = "/home/gustav/bellus/rgb_bellus/"
-OUTPUT_DIR = "/home/gustav/bellus/rgb_bellus_preped_vids/"
+ROOT_DIR = "/home/duck/bellus/rgb_bff/"
+OUTPUT_DIR = "/home/duck/bellus/rgb_bff_preped_vids/"
 FPS = 2  # Frames per second of output video
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
