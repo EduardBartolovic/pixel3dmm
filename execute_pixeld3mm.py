@@ -84,7 +84,7 @@ if __name__ == '__main__':
     #PATH_TO_VIDEO = "/home/duck/pixel3dmm/example_videos/test1.mp4"
     #process_video(PATH_TO_VIDEO)
     mp.set_start_method('spawn', force=True)
-    video_folder = "/home/duck/bellus/rgb_bff_preped_vids"
+    video_folder = "/home/gustav/pixel3dmm/rgb_bff_crop_vids"
     for video in sorted(os.listdir(video_folder)):
         video_path = os.path.join(video_folder, video)
         print(f"Processing: {video_path}")
@@ -95,3 +95,4 @@ if __name__ == '__main__':
         torch.cuda.empty_cache()
         torch.cuda.ipc_collect()
         gc.collect()
+

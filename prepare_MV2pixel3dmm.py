@@ -4,8 +4,8 @@ import tempfile
 from collections import defaultdict
 from tqdm import tqdm
 
-ROOT_DIR = "/home/duck/bellus/rgb_bff/"
-OUTPUT_DIR = "/home/duck/bellus/rgb_bff_preped_vids/"
+ROOT_DIR = "/home/gustav/pixel3dmm/rgb_bff_crop"
+OUTPUT_DIR = "/home/gustav/pixel3dmm/rgb_bff_crop_vids/"
 FPS = 2  # Frames per second of output video
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -50,7 +50,8 @@ for person_folder in tqdm(person_folders, desc="Iterating over IDs"):
             "-safe", "0",
             "-i", list_file_path,
             "-framerate", str(FPS),
-            "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",  # 👈 fix odd dimensions
+            "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+            "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2,pad=iw+200:ih+200:100:100", # With extra Padding
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
             "-preset", "fast",

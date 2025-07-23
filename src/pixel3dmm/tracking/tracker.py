@@ -682,8 +682,7 @@ class Tracker(object):
                 if (p < int(iters * 0.15) and (p % 2 == 0)) or not self.config.smooth:
                     all_frames = np.array(
                         range(self.config.start_frame, self.MAX_STEPS + self.config.start_frame, self.FRAME_SKIP))
-                    selected_frames = np.sort(np.random.choice(np.arange(len(all_frames)), size=self.BATCH_SIZE,
-                                                               replace=False))  # np.random.choice(
+                    selected_frames = np.sort(np.random.choice(np.arange(len(all_frames)), size=self.BATCH_SIZE, replace=False))
                 else:
                     all_frames = np.array(
                         range(self.config.start_frame, self.MAX_STEPS + self.config.start_frame, self.FRAME_SKIP))
