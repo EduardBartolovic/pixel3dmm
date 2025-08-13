@@ -92,6 +92,8 @@ if __name__ == '__main__':
         p.start()
         p.join()
 
+        # exit()
+
         torch.cuda.empty_cache()
         torch.cuda.ipc_collect()
         gc.collect()

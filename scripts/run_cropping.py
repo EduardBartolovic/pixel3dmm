@@ -9,13 +9,10 @@ import tyro
 
 import torchvision.transforms as transforms
 
-
 from pixel3dmm import env_paths
 sys.path.append(f'{env_paths.CODE_BASE}/src/pixel3dmm/preprocessing/PIPNet/FaceBoxesV2/')
 from pixel3dmm.preprocessing.pipnet_utils import demo_image
 from pixel3dmm import env_paths
-
-
 
 
 def run(exp_path, image_dir, start_frame = 0,
@@ -36,19 +33,14 @@ def run(exp_path, image_dir, start_frame = 0,
 
     save_dir = os.path.join(f'{env_paths.CODE_BASE}/src/pixel3dmm/preprocessing/PIPNet/snapshots', cfg.data_name, cfg.experiment_name)
 
-
-
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
     preprocess = transforms.Compose(
         [transforms.Resize((cfg.input_size, cfg.input_size)), transforms.ToTensor(), normalize])
 
-
     #for pid in pids:
     pid = "FaMoS_180424_03335_TA_selfie_IMG_0092.jpg"
     pid = "FaMoS_180426_03336_TA_selfie_IMG_0152.jpg"
-
-
 
     demo_image(image_dir, pid, save_dir, preprocess, cfg, cfg.input_size, cfg.net_stride, cfg.num_nb,
                            cfg.use_gpu,
@@ -80,23 +72,30 @@ def unpack_images(base_path, video_or_images_path):
 def main(video_or_images_path : str,
          max_bbox : bool = True, # not used
          disable_cropping : bool = False):
+
     if os.path.isdir(video_or_images_path):
         video_name = video_or_images_path.split('/')[-1]
     else:
         video_name = video_or_images_path.split('/')[-1][:-4]
 
-    base_path = f'{env_paths.PREPROCESSED_DATA}/{video_name}/rgb/'
-
-    unpack_images(base_path, video_or_images_path)
-
+    base_path = f'{env_paths.PREPROCESSED_DATA}/{video_name}/cropped/'
+    #base_path = f'{env_paths.PREPROCESSED_DATA}/{video_name}/rgb/'
+    
     if os.path.exists(f'{env_paths.PREPROCESSED_DATA}/{video_name}/cropped/'):
         if len(os.listdir(base_path)) == len(os.listdir(f'{env_paths.PREPROCESSED_DATA}/{video_name}/cropped/')):
+            print("Skipped unpacking video")
             return
 
+    unpack_images(base_path, video_or_images_path)
+    print("Finished unpacking video")
 
-    start_frame = -1
-    run('experiments/WFLW/pip_32_16_60_r18_l2_l1_10_1_nb10.py', base_path, start_frame=start_frame, vertical_crop=False,
-        static_crop=True, max_bbox=max_bbox, disable_cropping=disable_cropping)
+    #if os.path.exists(f'{env_paths.PREPROCESSED_DATA}/{video_name}/cropped/'):
+    #    if len(os.listdir(base_path)) == len(os.listdir(f'{env_paths.PREPROCESSED_DATA}/{video_name}/cropped/')):
+    #        return
+
+    #start_frame = -1
+    #run('experiments/WFLW/pip_32_16_60_r18_l2_l1_10_1_nb10.py', base_path, start_frame=start_frame, vertical_crop=False,
+    #    static_crop=True, max_bbox=max_bbox, disable_cropping=disable_cropping)
     # run('experiments/WFLW/pip_32_16_60_r101_l2_l1_10_1_nb10.py', base_path, start_frame=start_frame, vertical_crop=False, static_crop=True)
 
 

@@ -55,7 +55,7 @@ def collect_all_shapes(root_folder):
 
 # Example usage
 if __name__ == "__main__":
-    root_folder = "/home/duck/pixel3dmm/tracking_results/"
+    root_folder = "/home/gustav/pixel3dmm/tracking_results/"
     ids, file_names, shapes = collect_all_shapes(root_folder)
 
     print(f"Total frames collected: {len(shapes)}")

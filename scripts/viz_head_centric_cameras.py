@@ -89,9 +89,6 @@ def main(vid_name : str,
             overlay = (gt_img *0.5 + img[..., :3]*0.5).astype(np.uint8)
             vid_frames.append(overlay)
 
-
-
-
     pl.show()
 
     if DO_PROJECTION_TEST:

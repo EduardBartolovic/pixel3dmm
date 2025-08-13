@@ -51,7 +51,7 @@ for person_folder in tqdm(person_folders, desc="Iterating over IDs"):
             "-i", list_file_path,
             "-framerate", str(FPS),
             "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
-            "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2,pad=iw+200:ih+200:100:100", # With extra Padding
+            #"-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2,pad=iw+200:ih+200:100:100", # With extra Padding
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
             "-preset", "fast",
