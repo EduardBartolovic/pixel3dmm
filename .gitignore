@@ -20,6 +20,7 @@ dist
 /assets/
 /tracking_results/
 /preprocessing_results/
+/corr/out/
 
 *.mp4
 *.npy
@@ -27,3 +28,4 @@ dist
 *.txt
 *.png
 *.7z
+*.npz
