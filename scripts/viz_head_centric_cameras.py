@@ -15,7 +15,7 @@ from pixel3dmm.env_paths import PREPROCESSED_DATA, TRACKING_OUTPUT
 
 
 def main(vid_name : str,
-         postfix : str = 'nV1_noPho_uv2000.0_n1000.0',
+         postfix : str = 'nV1_noPho_noMICA_uv2000.0_n2000.0',
          HEAD_CENTRIC : bool = True,
          DO_PROJECTION_TEST : bool = False,
          ):
