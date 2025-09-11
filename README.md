@@ -23,6 +23,10 @@ First we need to set up a conda enviroment.
 ### Manual Installation
 
 ```
+
+sudo apt-get install unzip
+sudo apt install ffmpeg
+
 conda create -n p3dmm python=3.9
 conda activate p3dmm
 
@@ -58,6 +62,15 @@ Next, you can install all necessary preprocessing repositories and download netw
 ```
 ./install_preprocessing_pipeline.sh
 ```
+
+#### Downloading FLAME
+We added support for `FLAME2023_no_jaw`. It will now be downloaded by default in the previous step. If you have previsouly installed pixel3dmm, you can download FLAME2023 by running
+```
+./download_flame2023.sh
+```
+Alternatively, you can manually download both FLAME2020 and FLAME2023 from the [FLAME website](https://flame.is.tue.mpg.de/), unzip, and place the folders `FLAME2020` and `FLAME2023` into `src/pixel3dmm/preprocessing/MICA/data/`
+
+
 
 ### 1.2 Environment Paths
 
@@ -98,8 +111,9 @@ python scripts/network_inference.py model.prediction_type=uv_map video_name=$VID
 
 > *Note*: You can have a look at the preprocessed result and pixel3dmm predictions in `PIXEL3DMM_PREPROCESSED_DATA/{VID_NAME}`. 
 
-
 > *Note*: This script assumes square images and resizes to 512x512 before the network inference.
+> *Important Note*: Normal predictions are made in the FLAME coordinate system, not in camera space.
+
 
 ### 2.3 Tracking
 Finally, run the tracking as such
@@ -116,6 +130,15 @@ python scripts/track.py video_name=$VID_NAME
 > - increasing `early_stopping_delta` will speed up the online tracking phase, as it controls at what rate of loss-change to skip to the next frame.
 > - `global_iters` controls the number of iteration of the global optimization stage.
 
+#### Description of notable hyper-parameters
+The following will give a brief overview of important hyper-parameters which might be helpful to tune Pixel3dmm to your specific use-case. Defaults are specified in `configs/tracking.yaml` and can e.g. be overwritten as command line arguments
+
+> - `iters` and `global_iters` specify the number of optimization steps per-frame in stage1, and globally in stage2, repsectively.
+> - `ùse_flame2023` will use the FLAME2023_no_jaw version, should be used in conjunction with `ignore_mica=True`, since MICA is trained with FLAME2020_generic
+> - weights of different losses: `uv_map_super`, `normal_super` and `sil_super` specifiy the weights for the uv, normal and silhouette losses, respectively. There are also weights for regular facial landmark losses, which are usually not as reliable/accurate, but might perform better on videos with poor visual quality or strong video compression artifacts. Especially, landmark losses in the eye region are important, since the uv_map predictor performs poorly in that region, due to bad training data quality. If youre image/videos are of high quality, you might acheive better results with `use_mouth_lmk=False`.
+> - weights of regularizers: `w_exp`, `w_shape`, `w_general`, specify the weight for regualarizers on expression code, shape code w.r.t to MICA (or zero if `ignore_mica=True`), and shape code w.r.t. zero
+> - `ìs_discontinuous` can be specified for multi-image tracking, see below.
+> - Often the neck is underconstraint, it can be excluded by setting `include_neck=False`
 
 ### 2.4 Single-Image Inference
 
