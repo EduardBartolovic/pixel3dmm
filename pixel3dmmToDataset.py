@@ -3,7 +3,7 @@ import shutil
 
 # paths
 src_root = "/home/duck/pixel3dmm/corr_out/"   # folder with idXXXXX_hash folders
-dst_root = "/home/duck/pixel3dmm/vox2test_corrs/"    # output
+dst_root = "/home/duck/pixel3dmm/vox2test_corr/"    # output
 
 os.makedirs(dst_root, exist_ok=True)
 
@@ -40,6 +40,8 @@ mapping = {
     24: "25_25",
 }
 
+allowed = {'0_0', '25_-25', '25_25', '10_-10', '10_10', '0_-25', '0_25', '25_0'}
+
 for folder in os.listdir(src_root):
     folder_path = os.path.join(src_root, folder)
     if not os.path.isdir(folder_path):
@@ -61,10 +63,15 @@ for folder in os.listdir(src_root):
                 print(f"⚠️ Skipping {file}, no mapping found")
                 continue
             
-            src_file = os.path.join(folder_path, file)
-            new_name = f"{sample}{mapping[idx]}.npz"
-            dst_file = os.path.join(dst_class_path, new_name)
+            mapped_name = mapping[idx]
+            if mapped_name not in allowed:
+                # skip if not in the whitelist
+                continue
             
+            src_file = os.path.join(folder_path, file)
+            new_name = f"{sample}{mapped_name}_corr.npz"
+            dst_file = os.path.join(dst_class_path, new_name)
+
             shutil.copy2(src_file, dst_file)
 
-print("✅ Done copying + renaming everything!")
+print("✅ Done copying + renaming filtered files!")
