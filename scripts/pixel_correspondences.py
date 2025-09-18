@@ -247,8 +247,8 @@ def main():
                                             corrs['ref_verts_proj'], corrs['verts_proj'],
                                             IMAGE_WIDTH, IMAGE_HEIGHT)
 
-            src_img_path = f'{PREPROCESSED_DATA}/{vid_name}/cropped/{src_idx:05d}.jpg'
-            warped_img, img_target = warp_image(src_img_path, dense_flow, IMAGE_WIDTH, IMAGE_HEIGHT)
+            #src_img_path = f'{PREPROCESSED_DATA}/{vid_name}/cropped/{src_idx:05d}.jpg'
+            #warped_img, img_target = warp_image(src_img_path, dense_flow, IMAGE_WIDTH, IMAGE_HEIGHT)
 
             np.savez_compressed(f'{out_dir}/{src_idx:05d}_corr.npz', corr=dense_flow)
             
