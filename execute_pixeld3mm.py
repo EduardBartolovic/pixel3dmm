@@ -32,12 +32,6 @@ def process_video(video_path):
     base_name = os.path.basename(video_path)
     vid_name = os.path.splitext(base_name)[0]
 
-    if is_already_processed(vid_name):
-        print(f"⏩ Skipping '{vid_name}' – already processed.")
-        return
-
-    print(f"Processing video: {vid_name}")
-
     # Step 1: Preprocessing
     run_preprocessing.main(video_or_images_path=video_path)
     print("✅ Preprocessing done!")
@@ -60,22 +54,10 @@ def process_video(video_path):
     track_cfg_path = os.path.join(env_paths.CODE_BASE, 'configs', 'tracking.yaml')
     track_conf = OmegaConf.load(track_cfg_path)
     track_cli_conf = OmegaConf.from_dotlist([
-        f'video_name={vid_name}',
-        'iters=100',
-        'iters=1500',
-        'include_neck=False',
-        'w_exp=0.1',
-        'use_mouth_lmk=False',
-        'w_shape=0.01',
-        'w_shape_general=0.001',
-        'normal_super=2000.0',
-        'sil_super=1000.0',
-        'use_flame2023=True',
-        'ignore_mica=True',
-        'is_discontinuous=True'
+        f'video_name={vid_name}'
     ])
     track_cfg = OmegaConf.merge(track_conf, track_cli_conf)
-    # print(track_cfg)
+    print(track_cfg)
     track.main(track_cfg)
     print("✅ Tracking done!")
 
@@ -96,10 +78,19 @@ if __name__ == '__main__':
     #PATH_TO_VIDEO = "/home/duck/pixel3dmm/example_videos/test1.mp4"
     #process_video(PATH_TO_VIDEO)
     mp.set_start_method('spawn', force=True)
-    video_folder = "/home/gustav/pixel3dmm/vox2test_crop_vids"
+    video_folder = "/home/gustav/pixel3dmm/rgb_bff_crop_vids"
     for video in sorted(os.listdir(video_folder)):
         video_path = os.path.join(video_folder, video)
+
         print(f"Processing: {video_path}")
+
+        base_name = os.path.basename(video_path)
+        vid_name = os.path.splitext(base_name)[0]
+        if is_already_processed(vid_name):
+            print(f"⏩ Skipping '{vid_name}' – already processed.")
+            continue
+
+
         p = mp.Process(target=process_video, args=(video_path,))
         p.start()
         p.join()
